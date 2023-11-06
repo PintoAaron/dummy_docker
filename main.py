@@ -42,8 +42,7 @@ def get_teams():
         teams = cursor.fetchall()
         return {"data": teams}
     except Exception as error:
-        print(error)
-        return {"message": "Unable to fetch teams"}
+        return {"message": "Unable to fetch teams", "error": error}
 
 
 @app.get("/teams/{team_id}")
@@ -53,8 +52,7 @@ def get_team(team_id: int):
         team = cursor.fetchone()
         return {"data": team}
     except Exception as error:
-        print(error)
-        return {"message": "Unable to fetch team"}
+        return {"message": "Unable to fetch team", "error": error}
 
 
 @app.post("/teams", status_code=status.HTTP_201_CREATED)
@@ -68,8 +66,7 @@ def create_team(team: Team):
         conn.commit()
         return {"data": new_team}
     except Exception as error:
-        print(error)
-        return {"message": "Unable to create team"}
+        return {"message": "Unable to create team", "error": error}
 
 
 @app.put("/teams/{team_id}")
@@ -77,7 +74,6 @@ def update_team(team_id: int, new_team: Team):
     try:
         cursor.execute("""SELECT * FROM team WHERE team_id = %s""", (team_id,))
         team = cursor.fetchone()
-        print(team)
         if team:
             cursor.execute(
                 """UPDATE team SET name = %s, number_of_players = %s, coach = %s WHERE team_id = %s RETURNING * """,
@@ -89,5 +85,19 @@ def update_team(team_id: int, new_team: Team):
         else:
             return {"message": "Team not found"}
     except Exception as error:
-        print(error)
-        return {"message": "Unable to update team"}
+        return {"message": "Unable to update team", "error": error}
+
+
+@app.delete("/teams/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_team(team_id: int):
+    try:
+        cursor.execute("""SELECT * FROM team WHERE team_id = %s""", (team_id,))
+        team = cursor.fetchone()
+        if team:
+            cursor.execute("""DELETE FROM team WHERE team_id = %s""", (team_id,))
+            conn.commit()
+            return {"message": "Team deleted successfully"}
+        else:
+            return {"message": "Team not found"}
+    except Exception as error:
+        return {"message": "Unable to delete team", "error": error}
