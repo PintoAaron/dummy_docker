@@ -1,7 +1,7 @@
 import uvicorn
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional
 import psycopg2
@@ -57,7 +57,7 @@ def get_team(team_id: int):
         return {"message": "Unable to fetch team"}
 
 
-@app.post("/teams")
+@app.post("/teams", status_code=status.HTTP_201_CREATED)
 def create_team(team: Team):
     try:
         cursor.execute(
@@ -72,3 +72,22 @@ def create_team(team: Team):
         return {"message": "Unable to create team"}
 
 
+@app.put("/teams/{team_id}")
+def update_team(team_id: int, new_team: Team):
+    try:
+        cursor.execute("""SELECT * FROM team WHERE team_id = %s""", (team_id,))
+        team = cursor.fetchone()
+        print(team)
+        if team:
+            cursor.execute(
+                """UPDATE team SET name = %s, number_of_players = %s, coach = %s WHERE team_id = %s RETURNING * """,
+                (new_team.name, new_team.number_of_players, new_team.coach, team_id),
+            )
+            updated_team = cursor.fetchone()
+            conn.commit()
+            return {"data": updated_team}
+        else:
+            return {"message": "Team not found"}
+    except Exception as error:
+        print(error)
+        return {"message": "Unable to update team"}
