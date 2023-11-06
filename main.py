@@ -55,3 +55,20 @@ def get_team(team_id: int):
     except Exception as error:
         print(error)
         return {"message": "Unable to fetch team"}
+
+
+@app.post("/teams")
+def create_team(team: Team):
+    try:
+        cursor.execute(
+            """INSERT INTO team (name, number_of_players, coach) VALUES (%s, %s, %s) RETURNING * """,
+            (team.name, team.number_of_players, team.coach),
+        )
+        new_team = cursor.fetchone()
+        conn.commit()
+        return {"data": new_team}
+    except Exception as error:
+        print(error)
+        return {"message": "Unable to create team"}
+
+
