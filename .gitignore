@@ -1,3 +1,4 @@
 .idea/
 myvirt/
 .env
+__pycache__/
