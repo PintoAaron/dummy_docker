@@ -2,4 +2,3 @@
 myvirt/
 .env
 __pycache__/
-guide.py
